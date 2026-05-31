@@ -22,7 +22,6 @@ from datetime import datetime
 # PASSWORD_MANAGEMENT TEXT,
 # JOB_URL TEXT
 
-
     
     # Function to get the current date in the format YYYY/MM/DD
 def get_current_date():
@@ -51,7 +50,7 @@ class job_tracker:
                 DATE_APPLIED TEXT NOT NULL,
                 JOB_URL TEXT,
                 STATUS TEXT NOT NULL,
-                INTERVIEW_DATE TEXT NOT NULL,
+                INTERVIEW_DATE TEXT,
                 NEXT_ACTION TEXT)
         """
 
@@ -64,7 +63,8 @@ class job_tracker:
             INSERT INTO JOB_APP (COMPANY_NAME, JOB_TITLE, DATE_APPLIED, JOB_URL, STATUS, INTERVIEW_DATE, NEXT_ACTION)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         """
-
+        interview_date  = interview_date if len(interview_date) > 0 else None
+        next_action = next_action if len(next_action) > 0 else None
         self.app_cursor.execute(insertApplication, (company_name, job_title, date_applied, job_url, status, interview_date, next_action))
         self.app_conn.commit()
     
@@ -77,26 +77,30 @@ class job_tracker:
         self.app_cursor.execute(searchApplication, (company_name, job_title))
         result = self.app_cursor.fetchall()
         return result
+    
     # FIND JOB APPLICATION BY COMPANY
     def search_Application_by_company(self, company_name:str):
         searchApplicationByCompany = """
             SELECT * FROM JOB_APP WHERE COMPANY_NAME = ?
         """
     
-        self.app_cursor.execute(searchApplicationByCompany, (company_name))
+        self.app_cursor.execute(searchApplicationByCompany, (company_name,))
         result = self.app_cursor.fetchall()
         return result
 
     
     # REMOVE JOB APPLICATIONS
-    def remove_Application (self, company_name: str, job_title: str, date_applied: str):
+    def remove_Applications (self, applications: list[dict]):
         removeApplication = """
-            DELETE FROM JOB_APP WHERE COMPANY_NAME = ? AND JOB_TITLE = ? AND DATE_APPLIED = ?
+            DELETE FROM JOB_APP WHERE COMPANY_NAME = ? AND JOB_TITLE = ?
         """
 
-        self.app_cursor.execute(removeApplication, (company_name, job_title, date_applied))
+        values = [(app["company_name"], app["job_title"])
+                    for app in applications]
+        
+        self.app_cursor.executemany(removeApplication, values)
         self.app_conn.commit()
-    
+        
     # UPDATE APPLICATION STATUS
     def update_Application_Status(self, company_name:str, job_title:str, new_status:str):
         updateStatus = """
@@ -117,9 +121,11 @@ class job_tracker:
         return result
 
     # Find all up coming interview
-    def up_Coming_Interviews(self):
+    def display_up_Coming_Interviews(self):
         upcoming_interviews = """
-            SELECT * FROM JOB_APP WHERE INTERVIEW_DATE >= ? ORDER BY INTERVIEW_DATE ASC
+            SELECT * FROM JOB_APP WHERE INTERVIEW_DATE IS NOT NULL
+                    AND INTERVIEW_DATE >= ? 
+                ORDER BY INTERVIEW_DATE ASC
         """
 
         current_date = get_current_date()
