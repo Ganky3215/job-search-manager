@@ -1,5 +1,5 @@
 from trackerClass import job_tracker
-from menu import build_menue_options, menue
+from menu import build_menu_options, menu
 import time
 import os
 
@@ -70,22 +70,21 @@ def banner_exiting():
     clear_terminal()
     print_banner(EXITING_JOB_BANNER, delay=0.08)
     
-    time.sleep(1.5)
-    
+    time.sleep(1.5)    
 
 # TODO: Finish up the function
 def run():
     user_input: None
     decision: None
     tracker = create_DB()
-    MEUNE_OPTIONS = build_menue_options(tracker)
+    MEUNE_OPTIONS = build_menu_options(tracker)
     
     banner_animation()
     time.sleep(1.5)
     clear_terminal()
     try:
         while True:
-            menue(MEUNE_OPTIONS)
+            menu(MEUNE_OPTIONS)
             user_input = input("Select an option or type exit to quit: ").strip().upper()
             if user_input == "EXIT":
                 banner_exiting()
