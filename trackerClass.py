@@ -251,7 +251,7 @@ class job_tracker:
 
 
     # Updates user login credentials 
-    def update_Credentials (self, new_username:str, new_password:str, old_username:str, company_name:str, key:bytes):
+    def update_Credentials (self, old_username:str, new_username:str, new_password:str, company_name:str, key:bytes):
         
         encrypted_pass  = self.encrypt_data(new_password, key)
         
@@ -260,9 +260,10 @@ class job_tracker:
                 SET USERNAME = ?,
                 ENCRYPTED_PASSWORD = ?
             WHERE COMPANY_NAME = ?
+            AND USERNAME = ?
         """
         
-        self.auth_cursor.execute(updateCredentials, (new_username, encrypted_pass, company_name))
+        self.auth_cursor.execute(updateCredentials, (old_username, new_username, encrypted_pass, company_name))
         self.auth_conn.commit()
 
     # Display all credtials
